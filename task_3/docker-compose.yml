@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+ hits:
+   build: .
+   image: vkozin/hits:h4
+   volumes:
+     - hits_data:/app/logs/
+   depends_on:
+     - redis
+   networks:
+     - app_redis
+     - public
+   links:
+     - redis
+ redis:
+   image: redis:alpine
+   volumes:
+     - redis-data:/data
+   networks:
+     - app_redis
+ loadbalancer:
+   image: dockercloud/haproxy:latest
+   links:
+     - hits
+   volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+   ports:
+     - 8080:80
+   networks:
+     - public
+volumes:
+ redis-data:
+   driver: local
+ hits_data:
+   driver: local
+networks:
+ app_redis:
+   driver: bridge
+ public:
+   driver: bridge
